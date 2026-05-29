@@ -1,0 +1,59 @@
+name: Telegram Relay
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Fetch mode'
+        required: true
+        default: 'fetch_new'
+        type: choice
+        options:
+          - fetch_new
+          - fetch_chats_only
+          - download_pending_files
+      chat_ids:
+        description: 'Chat IDs (comma separated, optional)'
+        required: false
+        default: ''
+      message_limit:
+        description: 'Messages per chat (optional)'
+        required: false
+        default: '50'
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install telethon cryptography
+
+      - name: Run relay
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          TELETHON_SESSION: ${{ secrets.TELETHON_SESSION }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          FETCH_MODE: ${{ inputs.mode || 'fetch_new' }}
+          CHAT_IDS: ${{ inputs.chat_ids || '' }}
+          MESSAGE_LIMIT: ${{ inputs.message_limit || '50' }}
+        run: python scripts/relay.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "Telegram Relay"
+          git config user.email "relay@bot.local"
+          git add db/ -f
+          git diff --quiet && git diff --staged --quiet || (
+            git commit -m "Update $(date -u +%Y-%m-%d_%H-%M)"
+            git push
+          )
