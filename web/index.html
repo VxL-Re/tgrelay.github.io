@@ -14,21 +14,65 @@
             <div class="lock-container">
                 <span class="material-icons lock-icon">lock</span>
                 <h1>Telegram Relay</h1>
-                <p class="subtitle">Enter your encryption key to unlock</p>
-                <div class="input-field">
-                    <input type="password" id="key-input" placeholder="Encryption key" autocomplete="off">
-                    <button id="unlock-btn" class="btn-primary">
-                        <span class="material-icons">arrow_forward</span>
+                <p class="subtitle">Setup your relay</p>
+                
+                <!-- Step 1: Session -->
+                <div id="setup-step-1" class="setup-step">
+                    <label class="input-label">Telegram Session</label>
+                    <textarea id="session-input" placeholder="Paste your Telethon session string here..." rows="3" autocomplete="off"></textarea>
+                    <p class="hint-text">
+                        <a href="#" id="session-help-link">How to get my session?</a>
+                    </p>
+                    <button id="session-next-btn" class="btn-primary full-width">
+                        Next <span class="material-icons">arrow_forward</span>
                     </button>
                 </div>
+
+                <!-- Step 2: Repo -->
+                <div id="setup-step-2" class="setup-step" style="display:none;">
+                    <label class="input-label">GitHub Repo</label>
+                    <input type="text" id="repo-input" placeholder="username/repository" autocomplete="off">
+                    <p class="hint-text">Private repo where messages are stored</p>
+                    
+                    <div class="divider"></div>
+
+                    <label class="input-label checkbox-label">
+                        <input type="checkbox" id="save-session-check">
+                        <span>Save session to GitHub Actions (auto-fetch)</span>
+                    </label>
+                    <div id="pat-section" style="display:none; margin-top:8px;">
+                        <input type="password" id="pat-input" placeholder="GitHub token (needs repo scope)" autocomplete="off">
+                        <p class="hint-text">
+                            <a href="https://github.com/settings/tokens/new?scopes=repo&description=Telegram%20Relay" target="_blank">Create token with repo scope</a>
+                        </p>
+                    </div>
+                    <button id="repo-next-btn" class="btn-primary full-width">
+                        Next <span class="material-icons">arrow_forward</span>
+                    </button>
+                </div>
+
+                <!-- Step 3: Encryption -->
+                <div id="setup-step-3" class="setup-step" style="display:none;">
+                    <label class="input-label">Encryption Key</label>
+                    <div class="input-field">
+                        <input type="password" id="key-input" placeholder="Create a strong encryption key" autocomplete="off">
+                        <button id="toggle-key-vis" class="icon-btn" type="button" tabindex="-1">
+                            <span class="material-icons">visibility</span>
+                        </button>
+                    </div>
+                    <p class="hint-text">Encrypts all stored data. Keep this safe — it cannot be recovered.</p>
+                    <button id="unlock-btn" class="btn-primary full-width">
+                        Unlock <span class="material-icons">lock_open</span>
+                    </button>
+                </div>
+
                 <p id="lock-error" class="error-text"></p>
-                <p class="hint-text">This key never leaves your browser</p>
+                <p id="lock-status" class="status-text"></p>
             </div>
         </div>
 
         <!-- Main Screen -->
         <div id="main-screen" class="screen">
-            <!-- Sidebar -->
             <aside id="sidebar">
                 <div class="sidebar-header">
                     <h2>Chats</h2>
@@ -38,13 +82,15 @@
                 </div>
                 <div id="chat-list" class="chat-list"></div>
                 <div class="sidebar-footer">
+                    <button id="settings-btn" class="btn-text">
+                        <span class="material-icons">settings</span> Settings
+                    </button>
                     <button id="lock-btn" class="btn-text">
                         <span class="material-icons">lock</span> Lock
                     </button>
                 </div>
             </aside>
 
-            <!-- Main Content -->
             <main id="messages-area">
                 <div id="messages-header">
                     <h2 id="chat-title">Select a chat</h2>
@@ -62,17 +108,61 @@
                     </div>
                 </div>
             </main>
+        </div>
 
-            <!-- File Download Panel -->
-            <aside id="download-panel" class="panel-hidden">
-                <div class="panel-header">
-                    <h3>Downloads</h3>
-                    <button id="close-panel-btn" class="icon-btn">
-                        <span class="material-icons">close</span>
-                    </button>
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <h3>Settings</h3>
+                
+                <label class="input-label">Telegram Session</label>
+                <textarea id="settings-session" rows="3" readonly></textarea>
+                <button id="copy-session-btn" class="btn-secondary" style="margin-top:4px;">Copy Session</button>
+                
+                <label class="input-label" style="margin-top:12px;">Encryption Key</label>
+                <input type="password" id="settings-key" readonly>
+                
+                <label class="input-label" style="margin-top:12px;">GitHub Repo</label>
+                <input type="text" id="settings-repo" readonly>
+                
+                <div style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end;">
+                    <button id="clear-settings-btn" class="btn-secondary" style="color:var(--error);">Clear All Data</button>
+                    <button id="close-settings-btn" class="btn-primary">Close</button>
                 </div>
-                <div id="download-list" class="download-list"></div>
-            </aside>
+            </div>
+        </div>
+
+        <!-- Help Modal -->
+        <div id="session-help-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <h3>How to get your Telegram session</h3>
+                <ol>
+                    <li>On a device where Telegram works, install Telethon:
+                        <pre><code>pip install telethon</code></pre>
+                    </li>
+                    <li>Get API credentials from <a href="https://my.telegram.org/apps" target="_blank">my.telegram.org</a></li>
+                    <li>Run this Python script:
+                        <pre><code>from telethon import TelegramClient
+from telethon.sessions import StringSession
+
+API_ID = 12345  # replace with your api_id
+API_HASH = "abc123"  # replace with your api_hash
+
+async def main():
+    client = TelegramClient(StringSession(), API_ID, API_HASH)
+    await client.start()
+    print("Session string:")
+    print(client.session.save())
+
+import asyncio
+asyncio.run(main())</code></pre>
+                    </li>
+                    <li>Copy the printed session string</li>
+                    <li>Paste it on the setup screen</li>
+                </ol>
+                <p class="hint-text">The session is like your login — keep it secret. It never leaves your browser except when you choose to save it as a GitHub Secret.</p>
+                <button id="close-help-modal" class="btn-primary" style="margin-top:12px;">Got it</button>
+            </div>
         </div>
 
         <!-- Toast -->
