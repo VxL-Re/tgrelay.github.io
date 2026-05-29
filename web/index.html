@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Relay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Material+Icons&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Lock Screen -->
+        <div id="lock-screen" class="screen active">
+            <div class="lock-container">
+                <span class="material-icons lock-icon">lock</span>
+                <h1>Telegram Relay</h1>
+                <p class="subtitle">Enter your encryption key to unlock</p>
+                <div class="input-field">
+                    <input type="password" id="key-input" placeholder="Encryption key" autocomplete="off">
+                    <button id="unlock-btn" class="btn-primary">
+                        <span class="material-icons">arrow_forward</span>
+                    </button>
+                </div>
+                <p id="lock-error" class="error-text"></p>
+                <p class="hint-text">This key never leaves your browser</p>
+            </div>
+        </div>
+
+        <!-- Main Screen -->
+        <div id="main-screen" class="screen">
+            <!-- Sidebar -->
+            <aside id="sidebar">
+                <div class="sidebar-header">
+                    <h2>Chats</h2>
+                    <button id="refresh-btn" class="icon-btn" title="Refresh">
+                        <span class="material-icons">refresh</span>
+                    </button>
+                </div>
+                <div id="chat-list" class="chat-list"></div>
+                <div class="sidebar-footer">
+                    <button id="lock-btn" class="btn-text">
+                        <span class="material-icons">lock</span> Lock
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main id="messages-area">
+                <div id="messages-header">
+                    <h2 id="chat-title">Select a chat</h2>
+                    <div id="header-actions">
+                        <label class="fetch-more-label">
+                            <input type="number" id="fetch-count" value="50" min="10" max="200" step="10">
+                            <button id="fetch-more-btn" class="btn-secondary">Fetch More</button>
+                        </label>
+                    </div>
+                </div>
+                <div id="messages-container" class="messages-container">
+                    <div class="empty-state">
+                        <span class="material-icons">chat</span>
+                        <p>Select a chat to view messages</p>
+                    </div>
+                </div>
+            </main>
+
+            <!-- File Download Panel -->
+            <aside id="download-panel" class="panel-hidden">
+                <div class="panel-header">
+                    <h3>Downloads</h3>
+                    <button id="close-panel-btn" class="icon-btn">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div id="download-list" class="download-list"></div>
+            </aside>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
